@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Varsity Transport Live Tracker</title>
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Leaflet CSS for Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <!-- Socket.io Library -->
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <div class="dashboard-container">
+    <header class="header">
+      <h1>🚌 Varsity Transport Live Tracker</h1>
+      <p>Real-time Bus Location & Route Schedule</p>
+    </header>
+
+    <main class="main-content">
+      <!-- Bus Info Summary Card -->
+      <section class="card status-card">
+        <h2>Bus Details & Status</h2>
+        <div id="bus-info">
+          <p>⏳ Connecting to server...</p>
+        </div>
+      </section>
+
+      <!-- Interactive Map Section -->
+      <section class="card map-card">
+        <h2>Live Route Map</h2>
+        <div id="map"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Leaflet JS for Map -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Frontend Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
