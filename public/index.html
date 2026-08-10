@@ -3,40 +3,153 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Varsity Transport Live Tracker</title>
+  <title>Smart Varsity Bus Tracker & Fleet Management</title>
   <link rel="stylesheet" href="style.css">
   
-  <!-- Leaflet CSS for Map -->
+  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  
+  <!-- QR Code Generator Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <!-- Socket.io Library -->
   <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-  <div class="dashboard-container">
-    <header class="header">
-      <h1>🚌 Varsity Transport Live Tracker</h1>
-      <p>Real-time Bus Location & Route Schedule</p>
-    </header>
 
-    <main class="main-content">
-      <!-- Bus Info Summary Card -->
-      <section class="card status-card">
-        <h2>Bus Details & Status</h2>
-        <div id="bus-info">
-          <p>⏳ Connecting to server...</p>
+  <!-- Top Navigation Banner -->
+  <header class="navbar">
+    <div class="logo">🚌 Smart Transport Suite</div>
+    <nav class="nav-links">
+      <button onclick="openModal('studentModal')">🎓 Student Pass</button>
+      <button onclick="openModal('driverModal')">🚌 Driver Cockpit</button>
+      <button onclick="openModal('adminModal')">🛡️ Admin Panel</button>
+      <button onclick="openModal('lostModal')">🔍 Lost & Found</button>
+    </nav>
+  </header>
+
+  <div class="main-layout">
+    
+    <!-- Sidebar: Fleet List & Search -->
+    <aside class="sidebar">
+      <h2>Active Shuttle Fleet</h2>
+      <input type="text" id="searchInput" placeholder="Search route or bus..." onkeyup="filterFleet()">
+      <div id="fleetList" class="fleet-list"></div>
+    </aside>
+
+    <!-- Content Area: Live Map & Schedules -->
+    <main class="content-area">
+      <div class="card map-card">
+        <div class="card-header">
+          <h2>Live GPS Campus Map</h2>
+          <span class="live-dot">● LIVE</span>
         </div>
-      </section>
-
-      <!-- Interactive Map Section -->
-      <section class="card map-card">
-        <h2>Live Route Map</h2>
         <div id="map"></div>
-      </section>
+      </div>
+
+      <!-- Schedule Matrix & Community Section -->
+      <div class="grid-2">
+        <div class="card">
+          <h2>Bus Timetable & Corridor Matrix</h2>
+          <div id="routeTable"></div>
+        </div>
+
+        <div class="card">
+          <h2>Lost & Found Community Desk</h2>
+          <button class="btn-primary" onclick="openModal('addLostModal')">+ Report Item</button>
+          <div id="lostList" class="lost-list"></div>
+        </div>
+      </div>
     </main>
   </div>
 
-  <!-- Leaflet JS for Map -->
+  <!-- ================= MODALS ================= -->
+
+  <!-- Student Registration & RFID Pass Modal -->
+  <div id="studentModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('studentModal')">&times;</span>
+      <h2>Student Digital RFID Bus Pass</h2>
+      <form id="studentForm" onsubmit="generatePass(event)">
+        <input type="text" id="stuName" placeholder="Full Name" required>
+        <input type="text" id="stuId" placeholder="Student ID (e.g. 221-15-XXX)" required>
+        <input type="text" id="stuDept" placeholder="Department (e.g. CSE)" required>
+        <select id="stuBlood">
+          <option value="A+">A+</option><option value="B+">B+</option><option value="O+">O+</option><option value="AB+">AB+</option>
+        </select>
+        <button type="submit" class="btn-primary">Generate Pass</button>
+      </form>
+      <div id="passResult" class="pass-card hidden">
+        <div id="qrcode"></div>
+        <div id="passDetails"></div>
+        <button onclick="window.print()" class="btn-secondary">🖨️ Print Digital Pass</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Control Suite Modal -->
+  <div id="adminModal" class="modal">
+    <div class="modal-content modal-large">
+      <span class="close" onclick="closeModal('adminModal')">&times;</span>
+      <h2>🛡️ Admin Master Control Suite</h2>
+      
+      <div id="adminAuth">
+        <p>Enter Master Passcode:</p>
+        <input type="password" id="adminCode" placeholder="Passcode (Default: admin123)">
+        <button onclick="loginAdmin()" class="btn-primary">Unlock Suite</button>
+      </div>
+
+      <div id="adminPanel" class="hidden">
+        <h3>1. Add Shuttle Bus to Fleet</h3>
+        <form onsubmit="adminAddBus(event)" class="inline-form">
+          <input type="text" id="newBusNo" placeholder="Bus Number" required>
+          <input type="text" id="newModel" placeholder="Bus Model" required>
+          <input type="number" id="newCap" placeholder="Capacity" required>
+          <input type="text" id="newCorridor" placeholder="Corridor Zone" required>
+          <button type="submit" class="btn-primary">Add Bus</button>
+        </form>
+
+        <hr>
+        <h3>2. Live GPS Relocator (Coordinate Tweaker)</h3>
+        <div class="inline-form">
+          <select id="relocateBusSelect"></select>
+          <button onclick="quickRelocate(23.8765, 90.3211)">Smart Campus</button>
+          <button onclick="quickRelocate(23.8103, 90.4125)">Mirpur 10</button>
+          <button onclick="quickRelocate(23.7508, 90.3772)">Dhanmondi 32</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Driver Cockpit Modal -->
+  <div id="driverModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('driverModal')">&times;</span>
+      <h2>🚌 Driver Cockpit Control</h2>
+      <select id="driverBusSelect" onchange="loadDriverCockpit()"></select>
+      <div id="cockpitControls" class="cockpit-box hidden">
+        <h3>Seat Occupancy Controller</h3>
+        <p>Available Seats: <strong id="cockpitSeatCount">0</strong></p>
+        <button class="btn-seat" onclick="updateSeat(-1)">- Rider Boarded</button>
+        <button class="btn-seat" onclick="updateSeat(1)">+ Seat Vacated</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Lost Item Modal -->
+  <div id="addLostModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('addLostModal')">&times;</span>
+      <h2>Report Lost or Found Item</h2>
+      <form onsubmit="submitLostItem(event)">
+        <input type="text" id="lostTitle" placeholder="Item Name (e.g. ID Card)" required>
+        <input type="text" id="lostBus" placeholder="Bus Number / Route" required>
+        <input type="text" id="lostSeat" placeholder="Seat / Location in Bus" required>
+        <input type="text" id="lostPhone" placeholder="Contact Phone Number" required>
+        <button type="submit" class="btn-primary">Post Report</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <!-- Frontend Logic -->
   <script src="app.js"></script>
