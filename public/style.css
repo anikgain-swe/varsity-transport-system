@@ -1,46 +1,10 @@
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; }
-body { background-color: #f1f5f9; color: #0f172a; }
+/* Navigation Active State Pill */
+.nav-pill.active {
+  background-color: #0A458C;
+  color: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
 
-.navbar { background: #0f172a; color: white; display: flex; justify-content: space-between; padding: 15px 30px; align-items: center; }
-.logo { font-size: 1.3rem; font-weight: bold; }
-.nav-links button { background: #334155; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; margin-left: 8px; font-weight: 500; }
-.nav-links button:hover { background: #2563eb; }
-
-.main-layout { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
-@media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
-
-.sidebar { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-.sidebar input { width: 100%; padding: 10px; margin: 15px 0; border: 1px solid #cbd5e1; border-radius: 6px; }
-
-.fleet-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; }
-.fleet-card:hover { border-color: #2563eb; }
-.badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; color: white; }
-.AVAILABLE { background-color: #16a34a; }
-.STANDING { background-color: #d97706; }
-.FULL { background-color: #dc2626; }
-
-.content-area { display: flex; flex-direction: column; gap: 20px; }
-.card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-.live-dot { color: #dc2626; font-weight: bold; font-size: 0.85rem; }
-
-#map { height: 420px; width: 100%; border-radius: 8px; }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-@media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
-
-/* Modals UI */
-.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; }
-.modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 450px; position: relative; }
-.modal-large { max-width: 700px; }
-.close { position: absolute; top: 12px; right: 18px; font-size: 1.5rem; cursor: pointer; }
-
-form input, form select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #cbd5e1; border-radius: 6px; }
-.btn-primary { background: #2563eb; color: white; border: none; padding: 10px 16px; width: 100%; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-.btn-secondary { background: #475569; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; margin-top: 10px; }
-.inline-form { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
-
-.pass-card { margin-top: 15px; background: #f8fafc; border: 2px dashed #2563eb; padding: 15px; text-align: center; border-radius: 8px; }
-#qrcode { display: flex; justify-content: center; margin-bottom: 10px; }
-.cockpit-box { text-align: center; margin-top: 15px; background: #f1f5f9; padding: 15px; border-radius: 8px; }
-.btn-seat { padding: 12px 20px; margin: 5px; font-size: 1rem; border: none; border-radius: 6px; background: #0f172a; color: white; cursor: pointer; }
-.hidden { display: none; }
+.nav-pill:hover {
+  transition: all 0.2s ease-in-out;
+}
