@@ -1115,108 +1115,187 @@
 
     function openRegistration() {
 
-        const existing =
-            getData(
-                STORAGE.student,
-                null
-            );
-
-
-        openModal(
-            "Join DaffoRide",
-            "Choose your role and create a transport profile.",
-            `
-
-                <div class="df-role-grid">
-
-                    <button
-                        type="button"
-                        class="df-role ${
-                            selectedRole === "student"
-                                ? "active"
-                                : ""
-                        }"
-                        onclick="window.selectDaffoRole('student')"
-                    >
-
-                        <div class="df-role-icon">
-                            🎓
-                        </div>
-
-                        <div class="df-role-name">
-                            Student
-                        </div>
-
-                    </button>
-
-
-                    <button
-                        type="button"
-                        class="df-role ${
-                            selectedRole === "driver"
-                                ? "active"
-                                : ""
-                        }"
-                        onclick="window.selectDaffoRole('driver')"
-                    >
-
-                        <div class="df-role-icon">
-                            🚌
-                        </div>
-
-                        <div class="df-role-name">
-                            Driver
-                        </div>
-
-                    </button>
-
-
-                    <button
-                        type="button"
-                        class="df-role ${
-                            selectedRole === "admin"
-                                ? "active"
-                                : ""
-                        }"
-                        onclick="window.selectDaffoRole('admin')"
-                    >
-
-                        <div class="df-role-icon">
-                            🛠️
-                        </div>
-
-                        <div class="df-role-name">
-                            Admin
-                        </div>
-
-                    </button>
-
-                </div>
-
-
-                ${
-                    selectedRole === "student"
-                        ? studentForm(existing)
-                        : ""
-                }
-
-                ${
-                    selectedRole === "driver"
-                        ? driverForm()
-                        : ""
-                }
-
-                ${
-                    selectedRole === "admin"
-                        ? adminLoginForm()
-                        : ""
-                }
-
-            `
+    // Hide login screen while registration modal is open
+    const loginGate =
+        document.getElementById(
+            "dafforide-login-gate"
         );
+
+    if (loginGate) {
+        loginGate.style.display = "none";
     }
 
 
+    const existing =
+        getData(
+            STORAGE.student,
+            null
+        );
+
+
+    openModal(
+        "Registration & Roles",
+        "Create your DaffoRide transport profile.",
+        `
+
+        <div class="dr-registration-wrap">
+
+            <div class="dr-registration-intro">
+
+                <div class="dr-registration-icon">
+                    <i data-lucide="bus-front"></i>
+                </div>
+
+                <div>
+                    <div class="dr-registration-eyebrow">
+                        DAFFORIDE PORTAL
+                    </div>
+
+                    <h3>
+                        Choose your account type
+                    </h3>
+
+                    <p>
+                        Select your role to continue
+                        with the appropriate transport profile.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <!-- ROLE SWITCHER -->
+
+            <div class="dr-registration-roles">
+
+                <button
+                    type="button"
+                    class="dr-registration-role ${
+                        selectedRole === "student"
+                            ? "active"
+                            : ""
+                    }"
+                    onclick="
+                        window.selectDaffoRole('student')
+                    "
+                >
+
+                    <span class="dr-registration-role-icon">
+                        🎓
+                    </span>
+
+                    <span>
+                        <strong>Student</strong>
+                        <small>Rider account</small>
+                    </span>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="dr-registration-role ${
+                        selectedRole === "driver"
+                            ? "active"
+                            : ""
+                    }"
+                    onclick="
+                        window.selectDaffoRole('driver')
+                    "
+                >
+
+                    <span class="dr-registration-role-icon">
+                        🚌
+                    </span>
+
+                    <span>
+                        <strong>Driver</strong>
+                        <small>Driver account</small>
+                    </span>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="dr-registration-role ${
+                        selectedRole === "admin"
+                            ? "active"
+                            : ""
+                    }"
+                    onclick="
+                        window.selectDaffoRole('admin')
+                    "
+                >
+
+                    <span class="dr-registration-role-icon">
+                        🛠️
+                    </span>
+
+                    <span>
+                        <strong>Admin</strong>
+                        <small>System access</small>
+                    </span>
+
+                </button>
+
+            </div>
+
+
+            <!-- STUDENT FORM -->
+
+            ${
+                selectedRole === "student"
+                    ? `
+                        <div class="dr-registration-form">
+                            ${studentForm(existing)}
+                        </div>
+                    `
+                    : ""
+            }
+
+
+            <!-- DRIVER FORM -->
+
+            ${
+                selectedRole === "driver"
+                    ? `
+                        <div class="dr-registration-form">
+                            ${driverForm()}
+                        </div>
+                    `
+                    : ""
+            }
+
+
+            <!-- ADMIN FORM -->
+
+            ${
+                selectedRole === "admin"
+                    ? `
+                        <div class="dr-registration-form">
+                            ${adminLoginForm()}
+                        </div>
+                    `
+                    : ""
+            }
+
+        </div>
+
+        `
+    );
+
+
+    // Refresh Lucide icons
+    if (
+        typeof lucide !== "undefined"
+    ) {
+
+        lucide.createIcons();
+
+    }
+
+}
     function studentForm(data) {
 
         return `
@@ -3349,21 +3428,1554 @@
         }
     );
 
+// =====================================================
+// FIND AVAILABLE BUSES
+// =====================================================
+
+function setupAvailableBusSearch() {
+
+    const findButton =
+        document.getElementById(
+            "findAvailableBusesBtn"
+        );
+
+    if (!findButton) {
+        console.warn(
+            "Find Available Buses button not found."
+        );
+
+        return;
+    }
+
+
+    const routeButtons =
+        document.querySelectorAll(
+            ".available-route-filter"
+        );
+
+
+    let selectedRoute = "all";
+
+
+    // =================================================
+    // ROUTE FILTER BUTTONS
+    // =================================================
+
+    routeButtons.forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            function () {
+
+                routeButtons.forEach(
+                    function (item) {
+
+                        item.classList.remove(
+                            "bg-[#0A458C]",
+                            "text-white"
+                        );
+
+                        item.classList.add(
+                            "bg-white",
+                            "text-slate-600"
+                        );
+
+                    }
+                );
+
+
+                this.classList.remove(
+                    "bg-white",
+                    "text-slate-600"
+                );
+
+                this.classList.add(
+                    "bg-[#0A458C]",
+                    "text-white"
+                );
+
+
+                selectedRoute =
+                    this.dataset.route ||
+                    "all";
+
+            }
+        );
+
+    });
+
+
+    // =================================================
+    // FIND AVAILABLE BUSES
+    // =================================================
+
+    findButton.addEventListener(
+        "click",
+        function () {
+
+            const pickup =
+                document.getElementById(
+                    "busPickupStop"
+                );
+
+            const destination =
+                document.getElementById(
+                    "busDestination"
+                );
+
+
+            const pickupName =
+                pickup &&
+                pickup.selectedOptions[0]
+                    ? pickup.selectedOptions[0].text
+                    : "Selected pickup";
+
+
+            const destinationName =
+                destination &&
+                destination.selectedOptions[0]
+                    ? destination.selectedOptions[0].text
+                    : "Selected destination";
+
+
+            showAvailableBuses(
+                pickupName,
+                destinationName,
+                selectedRoute
+            );
+
+        }
+    );
+
+}
+
+
+// =====================================================
+// AVAILABLE BUS DATA
+// =====================================================
+
+function getAvailableBuses() {
+
+    return [
+
+     {
+    number: "DIU-Bus-01",
+    route: "R-101",
+    corridor: "Uttara",
+    destination: "ashulia",
+    speed: 38,
+    occupied: 22,
+    capacity: 40,
+    eta: "5 min",
+    status: "AVAILABLE"
+},
+
+        {
+    number: "DIU-Bus-02",
+    route: "R-202",
+    corridor: "Mirpur",
+    destination: "ashulia",
+    speed: 31,
+    occupied: 28,
+    capacity: 40,
+    eta: "8 min",
+    status: "AVAILABLE"
+},
+
+       {
+    number: "DIU-Bus-03",
+    route: "R-303",
+    corridor: "Dhanmondi",
+    destination: "ashulia",
+    speed: 27,
+    occupied: 19,
+    capacity: 40,
+    eta: "11 min",
+    status: "AVAILABLE"
+},
+
+      {
+    number: "DIU-Bus-04",
+    route: "R-101",
+    corridor: "Uttara",
+    destination: "ashulia",
+    speed: 34,
+    occupied: 35,
+    capacity: 40,
+    eta: "14 min",
+    status: "STANDING"
+}
+    ];
+
+}
+
+
+// =====================================================
+// SHOW AVAILABLE BUS RESULTS
+// =====================================================
+
+function showAvailableBuses(
+    pickup,
+    destination,
+    selectedRoute
+) {
+
+    let buses =
+    getAvailableBuses();
+
+
+// =====================================================
+// PICKUP FILTER
+// =====================================================
+
+if (pickup) {
+
+    const pickupText =
+        pickup.toLowerCase();
+
+
+    buses =
+        buses.filter(
+            function (bus) {
+
+                const corridor =
+                    (
+                        bus.corridor ||
+                        ""
+                    ).toLowerCase();
+
+
+                // Uttara pickup
+                if (
+                    pickupText.includes(
+                        "uttara"
+                    )
+                ) {
+
+                    return (
+                        corridor ===
+                        "uttara"
+                    );
+
+                }
+
+
+                // Mirpur pickup
+                if (
+                    pickupText.includes(
+                        "mirpur"
+                    )
+                ) {
+
+                    return (
+                        corridor ===
+                        "mirpur"
+                    );
+
+                }
+
+
+                // Dhanmondi pickup
+                if (
+                    pickupText.includes(
+                        "dhanmondi"
+                    )
+                ) {
+
+                    return (
+                        corridor ===
+                        "dhanmondi"
+                    );
+
+                }
+
+
+                return true;
+
+            }
+        );
+
+}
+
+
+// =====================================================
+// DESTINATION FILTER
+// =====================================================
+
+if (destination) {
+
+    const destinationText =
+        destination.toLowerCase();
+
+
+    buses =
+        buses.filter(
+            function (bus) {
+
+                const busDestination =
+                    (
+                        bus.destination ||
+                        ""
+                    ).toLowerCase();
+
+
+                // Ashulia
+                if (
+                    destinationText.includes(
+                        "ashulia"
+                    )
+                ) {
+
+                    return (
+                        busDestination.includes(
+                            "ashulia"
+                        ) ||
+                        busDestination === ""
+                    );
+
+                }
+
+
+                // Uttara Campus
+                if (
+                    destinationText.includes(
+                        "uttara"
+                    )
+                ) {
+
+                    return (
+                        busDestination.includes(
+                            "uttara"
+                        ) ||
+                        busDestination === ""
+                    );
+
+                }
+
+
+                return true;
+
+            }
+        );
+
+}
+
+
+// =====================================================
+// ROUTE FILTER
+// =====================================================
+
+if (
+    selectedRoute !== "all"
+) {
+
+    buses =
+        buses.filter(
+            function (bus) {
+
+                return (
+                    bus.route ===
+                    selectedRoute
+                );
+
+            }
+        );
+
+}
+
+    // No bus found
+    if (
+        buses.length === 0
+    ) {
+
+        openModal(
+            "No Bus Available",
+            "Live fleet availability",
+            `
+
+            <div class="df-alert">
+
+                No available bus was found
+                for the selected route.
+
+            </div>
+
+            <div
+                class="df-button-row"
+            >
+
+                <button
+                    type="button"
+                    class="df-button df-button-secondary"
+                    onclick="
+                        window.closeDaffoModal()
+                    "
+                >
+                    Close
+                </button>
+
+            </div>
+
+            `
+        );
+
+        return;
+
+    }
+
+
+    // =================================================
+    // BUS CARDS
+    // =================================================
+
+    let busHTML = "";
+
+
+    buses.forEach(
+        function (bus) {
+
+            const availableSeats =
+                bus.capacity -
+                bus.occupied;
+
+
+            const occupancy =
+                Math.round(
+                    (
+                        bus.occupied /
+                        bus.capacity
+                    ) * 100
+                );
+
+
+            let statusClass =
+                "bg-emerald-100 text-emerald-700";
+
+
+            if (
+                bus.status ===
+                "STANDING"
+            ) {
+
+                statusClass =
+                    "bg-amber-100 text-amber-700";
+
+            }
+
+
+            if (
+                availableSeats <= 0
+            ) {
+
+                statusClass =
+                    "bg-red-100 text-red-700";
+
+            }
+
+
+            busHTML += `
+
+                <div
+                    class="
+                        bg-white
+                        border
+                        border-slate-200
+                        rounded-2xl
+                        p-4
+                        mb-3
+                        shadow-sm
+                    "
+                >
+
+                    <div
+                        class="
+                            flex
+                            items-center
+                            justify-between
+                            gap-3
+                        "
+                    >
+
+                        <div>
+
+                            <div
+                                class="
+                                    text-sm
+                                    font-black
+                                    text-slate-900
+                                "
+                            >
+                                🚌 ${bus.number}
+                            </div>
+
+                            <div
+                                class="
+                                    text-[11px]
+                                    text-slate-500
+                                    mt-1
+                                    font-semibold
+                                "
+                            >
+                                ${bus.route}
+                                ·
+                                ${bus.corridor}
+                            </div>
+
+                        </div>
+
+
+                        <span
+                            class="
+                                ${statusClass}
+                                px-2
+                                py-1
+                                rounded-full
+                                text-[9px]
+                                font-black
+                            "
+                        >
+                            ${bus.status}
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        class="
+                            grid
+                            grid-cols-3
+                            gap-2
+                            mt-4
+                        "
+                    >
+
+                        <div
+                            class="
+                                bg-slate-50
+                                rounded-xl
+                                p-2
+                                text-center
+                            "
+                        >
+
+                            <div
+                                class="
+                                    text-[9px]
+                                    text-slate-400
+                                    font-bold
+                                "
+                            >
+                                SPEED
+                            </div>
+
+                            <div
+                                class="
+                                    text-sm
+                                    font-black
+                                    text-slate-800
+                                "
+                            >
+                                ${bus.speed}
+                                <span
+                                    class="text-[9px]"
+                                >
+                                    km/h
+                                </span>
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="
+                                bg-slate-50
+                                rounded-xl
+                                p-2
+                                text-center
+                            "
+                        >
+
+                            <div
+                                class="
+                                    text-[9px]
+                                    text-slate-400
+                                    font-bold
+                                "
+                            >
+                                SEATS
+                            </div>
+
+                            <div
+                                class="
+                                    text-sm
+                                    font-black
+                                    text-slate-800
+                                "
+                            >
+                                ${availableSeats}
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="
+                                bg-slate-50
+                                rounded-xl
+                                p-2
+                                text-center
+                            "
+                        >
+
+                            <div
+                                class="
+                                    text-[9px]
+                                    text-slate-400
+                                    font-bold
+                                "
+                            >
+                                ETA
+                            </div>
+
+                            <div
+                                class="
+                                    text-sm
+                                    font-black
+                                    text-[#0A458C]
+                                "
+                            >
+                                ${bus.eta}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Occupancy -->
+
+                    <div class="mt-3">
+
+                        <div
+                            class="
+                                flex
+                                justify-between
+                                text-[9px]
+                                font-bold
+                                text-slate-500
+                                mb-1
+                            "
+                        >
+
+                            <span>
+                                Occupancy
+                            </span>
+
+                            <span>
+                                ${bus.occupied}/${bus.capacity}
+                            </span>
+
+                        </div>
+
+
+                        <div
+                            class="
+                                h-1.5
+                                bg-slate-100
+                                rounded-full
+                                overflow-hidden
+                            "
+                        >
+
+                            <div
+                                class="
+                                    h-full
+                                    bg-[#0A458C]
+                                    rounded-full
+                                "
+                                style="
+                                    width:${occupancy}%;
+                                "
+                            ></div>
+
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="
+                            w-full
+                            mt-3
+                            bg-[#0A458C]
+                            hover:bg-[#07356E]
+                            text-white
+                            rounded-xl
+                            py-2.5
+                            text-xs
+                            font-black
+                            transition
+                        "
+                        onclick="
+                            window.trackAvailableBus(
+                                '${bus.number}'
+                            )
+                        "
+                    >
+
+                        Track This Bus
+
+                    </button>
+
+                </div>
+
+            `;
+
+        }
+    );
+
+
+    // =================================================
+    // OPEN RESULT MODAL
+    // =================================================
+
+    openModal(
+        "Available Buses",
+        pickup +
+        " → " +
+        destination,
+        `
+
+        <div>
+
+            <div
+                class="
+                    flex
+                    items-center
+                    justify-between
+                    mb-4
+                "
+            >
+
+                <div
+                    class="
+                        text-xs
+                        font-bold
+                        text-slate-500
+                    "
+                >
+                    ${buses.length}
+                    bus${buses.length > 1 ? "es" : ""}
+                    available
+                </div>
+
+                <span
+                    class="
+                        bg-emerald-100
+                        text-emerald-700
+                        px-2
+                        py-1
+                        rounded-full
+                        text-[9px]
+                        font-black
+                    "
+                >
+                    LIVE
+                </span>
+
+            </div>
+
+            ${busHTML}
+
+        </div>
+
+        `
+    );
+
+}
+
+
+// =====================================================
+// TRACK SELECTED BUS
+// =====================================================
+
+function trackAvailableBus(
+    busNumber
+) {
+
+    const buses =
+        getAvailableBuses();
+
+
+    const bus =
+        buses.find(
+            function (item) {
+
+                return (
+                    item.number ===
+                    busNumber
+                );
+
+            }
+        );
+
+
+    if (!bus) {
+        return;
+    }
+
+
+    const availableSeats =
+        bus.capacity -
+        bus.occupied;
+
+
+    openModal(
+        bus.number,
+        "Live shuttle tracking",
+        `
+
+        <div>
+
+            <div
+                class="
+                    bg-emerald-50
+                    border
+                    border-emerald-200
+                    rounded-2xl
+                    p-4
+                    mb-4
+                "
+            >
+
+                <div
+                    class="
+                        flex
+                        items-center
+                        justify-between
+                    "
+                >
+
+                    <div>
+
+                        <div
+                            class="
+                                text-base
+                                font-black
+                                text-slate-900
+                            "
+                        >
+                            🚌 ${bus.number}
+                        </div>
+
+                        <div
+                            class="
+                                text-[10px]
+                                text-emerald-700
+                                font-black
+                                mt-1
+                            "
+                        >
+                            ● LIVE TRACKING ACTIVE
+                        </div>
+
+                    </div>
+
+
+                    <span
+                        class="
+                            bg-emerald-500
+                            text-white
+                            px-2
+                            py-1
+                            rounded-full
+                            text-[9px]
+                            font-black
+                        "
+                    >
+                        LIVE
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="
+                    grid
+                    grid-cols-2
+                    gap-3
+                "
+            >
+
+                <div
+                    class="
+                        bg-slate-50
+                        rounded-xl
+                        p-3
+                    "
+                >
+
+                    <div
+                        class="
+                            text-[9px]
+                            text-slate-400
+                            font-bold
+                        "
+                    >
+                        SPEED
+                    </div>
+
+                    <div
+                        class="
+                            text-lg
+                            font-black
+                            text-slate-900
+                        "
+                    >
+                        ${bus.speed}
+                        <span
+                            class="text-[10px]"
+                        >
+                            km/h
+                        </span>
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="
+                        bg-slate-50
+                        rounded-xl
+                        p-3
+                    "
+                >
+
+                    <div
+                        class="
+                            text-[9px]
+                            text-slate-400
+                            font-bold
+                        "
+                    >
+                        ETA
+                    </div>
+
+                    <div
+                        class="
+                            text-lg
+                            font-black
+                            text-[#0A458C]
+                        "
+                    >
+                        ${bus.eta}
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="
+                        bg-slate-50
+                        rounded-xl
+                        p-3
+                    "
+                >
+
+                    <div
+                        class="
+                            text-[9px]
+                            text-slate-400
+                            font-bold
+                        "
+                    >
+                        ROUTE
+                    </div>
+
+                    <div
+                        class="
+                            text-sm
+                            font-black
+                            text-slate-900
+                        "
+                    >
+                        ${bus.route}
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="
+                        bg-slate-50
+                        rounded-xl
+                        p-3
+                    "
+                >
+
+                    <div
+                        class="
+                            text-[9px]
+                            text-slate-400
+                            font-bold
+                        "
+                    >
+                        AVAILABLE
+                    </div>
+
+                    <div
+                        class="
+                            text-sm
+                            font-black
+                            text-emerald-600
+                        "
+                    >
+                        ${availableSeats}
+                        seats
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="
+                    w-full
+                    mt-4
+                    bg-[#0A458C]
+                    text-white
+                    rounded-xl
+                    py-2.5
+                    text-xs
+                    font-black
+                "
+                onclick="
+                    window.closeDaffoModal()
+                "
+            >
+                Close
+            </button>
+
+        </div>
+
+        `
+    );
+
+}
+
+
+// =====================================================
+// GLOBAL API
+// =====================================================
+
+window.setupAvailableBusSearch =
+    setupAvailableBusSearch;
+
+window.trackAvailableBus =
+    trackAvailableBus;
+
+    // =====================================================
+// NOTIFICATION SYSTEM
+// =====================================================
+
+function setupNotifications() {
+
+    const bell =
+        document.getElementById(
+            "notificationBell"
+        );
+
+    if (!bell) {
+        return;
+    }
+
+
+    bell.addEventListener(
+        "click",
+        function () {
+
+            openNotificationPanel();
+
+        }
+    );
+
+}
+
+
+// =====================================================
+// NOTIFICATION DATA
+// =====================================================
+
+function getNotifications() {
+
+    return [
+
+        {
+            id: 1,
+            icon: "bus",
+            type: "LIVE",
+            title: "DIU-Bus-01 is approaching",
+            message:
+                "Your shuttle is approximately 5 minutes away.",
+            time: "2 min ago",
+            unread: true
+        },
+
+        {
+            id: 2,
+            icon: "triangle-alert",
+            type: "ALERT",
+            title: "Traffic delay on Mirpur Route",
+            message:
+                "R-202 may experience a 10 minute delay.",
+            time: "12 min ago",
+            unread: true
+        },
+
+        {
+            id: 3,
+            icon: "circle-check",
+            type: "UPDATE",
+            title: "Transport system is live",
+            message:
+                "Live shuttle tracking has been synchronized.",
+            time: "25 min ago",
+            unread: true
+        },
+
+        {
+            id: 4,
+            icon: "ticket",
+            type: "PASS",
+            title: "Digital pass ready",
+            message:
+                "Your student transport pass is available.",
+            time: "1 hour ago",
+            unread: false
+        }
+
+    ];
+
+}
+
+
+// =====================================================
+// NOTIFICATION PANEL
+// =====================================================
+
+function openNotificationPanel() {
+
+    const notifications =
+        getNotifications();
+
+
+    const unreadCount =
+        notifications.filter(
+            function (item) {
+                return item.unread;
+            }
+        ).length;
+
+
+    let notificationHTML = "";
+
+
+    notifications.forEach(
+        function (notification) {
+
+            let iconColor =
+                "bg-blue-50 text-[#0A458C]";
+
+
+            if (
+                notification.type ===
+                "ALERT"
+            ) {
+
+                iconColor =
+                    "bg-amber-50 text-amber-600";
+
+            }
+
+
+            if (
+                notification.type ===
+                "LIVE"
+            ) {
+
+                iconColor =
+                    "bg-emerald-50 text-emerald-600";
+
+            }
+
+
+            notificationHTML += `
+
+                <div
+                    class="
+                        flex
+                        gap-3
+                        p-3
+                        rounded-2xl
+                        border
+                        border-slate-100
+                        bg-white
+                        hover:bg-slate-50
+                        transition
+                        mb-2
+                    "
+                >
+
+                    <div
+                        class="
+                            w-9
+                            h-9
+                            rounded-xl
+                            ${iconColor}
+                            flex
+                            items-center
+                            justify-center
+                            flex-shrink-0
+                        "
+                    >
+
+                        <i
+                            data-lucide="${notification.icon}"
+                            class="h-4 w-4"
+                        ></i>
+
+                    </div>
+
+
+                    <div
+                        class="flex-1 min-w-0"
+                    >
+
+                        <div
+                            class="
+                                flex
+                                items-start
+                                justify-between
+                                gap-2
+                            "
+                        >
+
+                            <h4
+                                class="
+                                    text-xs
+                                    font-black
+                                    text-slate-900
+                                "
+                            >
+                                ${notification.title}
+                            </h4>
+
+
+                            ${
+                                notification.unread
+                                    ? `
+                                        <span
+                                            class="
+                                                w-2
+                                                h-2
+                                                rounded-full
+                                                bg-[#0A458C]
+                                                mt-1
+                                                flex-shrink-0
+                                            "
+                                        ></span>
+                                    `
+                                    : ""
+                            }
+
+                        </div>
+
+
+                        <p
+                            class="
+                                text-[10px]
+                                text-slate-500
+                                leading-relaxed
+                                mt-1
+                            "
+                        >
+                            ${notification.message}
+                        </p>
+
+
+                        <div
+                            class="
+                                text-[9px]
+                                font-bold
+                                text-slate-400
+                                mt-1.5
+                            "
+                        >
+                            ${notification.time}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }
+    );
+
+
+    openModal(
+        "Notifications",
+        `${unreadCount} unread updates`,
+        `
+
+        <div>
+
+            <div
+                class="
+                    flex
+                    items-center
+                    justify-between
+                    mb-4
+                    bg-slate-50
+                    rounded-2xl
+                    px-3
+                    py-2
+                "
+            >
+
+                <div
+                    class="
+                        text-[10px]
+                        font-bold
+                        text-slate-500
+                    "
+                >
+                    Transport Updates
+                </div>
+
+
+                <button
+                    type="button"
+                    class="
+                        text-[10px]
+                        font-black
+                        text-[#0A458C]
+                        hover:underline
+                    "
+                    onclick="
+                        window.markNotificationsRead()
+                    "
+                >
+                    Mark all as read
+                </button>
+
+            </div>
+
+
+            <div>
+                ${notificationHTML}
+            </div>
+
+
+            <button
+                type="button"
+                class="
+                    w-full
+                    mt-3
+                    bg-[#0A458C]
+                    hover:bg-[#07356E]
+                    text-white
+                    rounded-xl
+                    py-2.5
+                    text-xs
+                    font-black
+                    transition
+                "
+                onclick="
+                    window.closeDaffoModal()
+                "
+            >
+                Close
+            </button>
+
+        </div>
+
+        `
+    );
+
+
+    // Re-render Lucide icons
+    if (
+        window.lucide &&
+        typeof window.lucide.createIcons ===
+            "function"
+    ) {
+
+        window.lucide.createIcons();
+
+    }
+
+}
+
+
+// =====================================================
+// MARK NOTIFICATIONS AS READ
+// =====================================================
+
+function markNotificationsRead() {
+
+    const badge =
+        document.getElementById(
+            "notificationBadge"
+        );
+
+
+    if (badge) {
+
+        badge.textContent = "0";
+
+        badge.classList.remove(
+            "bg-red-500"
+        );
+
+        badge.classList.add(
+            "bg-slate-400"
+        );
+
+    }
+
+
+    openModal(
+        "Notifications",
+        "All caught up",
+        `
+
+        <div
+            class="
+                text-center
+                py-6
+            "
+        >
+
+            <div
+                class="
+                    w-14
+                    h-14
+                    mx-auto
+                    rounded-full
+                    bg-emerald-50
+                    text-emerald-600
+                    flex
+                    items-center
+                    justify-center
+                    mb-3
+                "
+            >
+
+                <i
+                    data-lucide="check"
+                    class="h-6 w-6"
+                ></i>
+
+            </div>
+
+
+            <h3
+                class="
+                    text-sm
+                    font-black
+                    text-slate-900
+                "
+            >
+                You're all caught up
+            </h3>
+
+
+            <p
+                class="
+                    text-[10px]
+                    text-slate-500
+                    mt-1
+                "
+            >
+                There are no unread transport updates.
+            </p>
+
+        </div>
+
+
+        <button
+            type="button"
+            class="
+                w-full
+                bg-[#0A458C]
+                text-white
+                rounded-xl
+                py-2.5
+                text-xs
+                font-black
+            "
+            onclick="
+                window.closeDaffoModal()
+            "
+        >
+            Done
+        </button>
+
+        `
+    );
+
+
+    if (
+        window.lucide &&
+        typeof window.lucide.createIcons ===
+            "function"
+    ) {
+
+        window.lucide.createIcons();
+
+    }
+
+}
+
+
+// =====================================================
+// GLOBAL API
+// =====================================================
+
+window.openNotificationPanel =
+    openNotificationPanel;
+
+window.markNotificationsRead =
+    markNotificationsRead;
 
     // =====================================================
     // INITIALIZATION
     // =====================================================
+function initialize() {
 
-    function initialize() {
+    injectStyles();
 
-        injectStyles();
-        setupTopNavigation();
-        console.log(
-            "DaffoRide core features initialized."
-        );
-    }
+    setupTopNavigation();
 
+    setupLogoutButton();
 
+    createLoginGate();
+
+    setupAvailableBusSearch();
+    
+    setupNotifications();
+
+    console.log(
+        "DaffoRide core features initialized."
+    );
+}
     // =====================================================
     // GLOBAL API
     // =====================================================
@@ -3598,5 +5210,1369 @@ function setupTopNavigation() {
         initialize();
 
     }
+// =====================================================
+// DAFFORIDE LOGIN + LOGOUT SYSTEM
+// =====================================================
 
+function createLoginGate() {
+
+    // Already logged in
+    if (
+        sessionStorage.getItem("dafforide_logged_in") === "true"
+    ) {
+        return;
+    }
+
+    // Prevent duplicate login screen
+    if (
+        document.getElementById("dafforide-login-gate")
+    ) {
+        return;
+    }
+
+    const overlay = document.createElement("div");
+
+    overlay.id = "dafforide-login-gate";
+
+    overlay.innerHTML = `
+        <div class="dr-login-backdrop">
+
+            <div class="dr-login-card">
+
+                <!-- BRAND -->
+                <div class="dr-login-brand">
+
+                    <div class="dr-login-logo">
+                        <i data-lucide="bus-front"></i>
+                    </div>
+
+                    <div>
+                        <h1>daffoRide</h1>
+                        <p>University Transport Portal</p>
+                    </div>
+
+                </div>
+
+
+                <!-- HEADING -->
+                <div class="dr-login-heading">
+
+                    <span>WELCOME BACK</span>
+
+                    <h2>
+                        Sign in to continue
+                    </h2>
+
+                    <p>
+                        Access live campus transport,
+                        schedules and digital services.
+                    </p>
+
+                </div>
+
+
+                <!-- ROLE SWITCH -->
+                <div class="dr-role-switch">
+
+                    <button
+                        type="button"
+                        class="dr-role active"
+                        data-role="student">
+
+                        Student
+
+                    </button>
+
+                    <button
+                        type="button"
+                        class="dr-role"
+                        data-role="driver">
+
+                        Driver
+
+                    </button>
+
+                    <button
+                        type="button"
+                        class="dr-role"
+                        data-role="admin">
+
+                        Admin
+
+                    </button>
+
+                </div>
+
+
+                <!-- LOGIN FORM -->
+                <form id="dr-login-form">
+
+                    <label for="dr-login-id">
+                        Email / ID
+                    </label>
+
+                    <input
+                        id="dr-login-id"
+                        type="text"
+                        placeholder="Enter your student ID"
+                        autocomplete="username"
+                        required
+                    >
+
+
+                    <label for="dr-login-password">
+                        Password
+                    </label>
+
+                    <input
+                        id="dr-login-password"
+                        type="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+
+                    <div
+                        id="dr-login-error"
+                        class="dr-login-error"
+                        hidden>
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="dr-login-button">
+
+                        Login to DaffoRide
+                        <span>→</span>
+
+                    </button>
+
+                </form>
+
+
+                <!-- REGISTRATION -->
+                <button
+                    type="button"
+                    id="dr-register-link"
+                    class="dr-register-link">
+
+                    New user?
+                    <strong>
+                        Registration & Roles Portal
+                    </strong>
+
+                </button>
+
+
+                <!-- DEMO HINT -->
+                <p class="dr-demo-hint">
+
+                    Demo Admin Password:
+                    <strong>admin123</strong>
+
+                </p>
+
+            </div>
+
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    document.body.style.overflow = "hidden";
+
+
+    // =================================================
+    // ROLE SWITCH
+    // =================================================
+
+    let selectedRole = "student";
+
+    const roleButtons =
+        overlay.querySelectorAll(".dr-role");
+
+    roleButtons.forEach((button) => {
+
+        button.addEventListener("click", () => {
+
+            roleButtons.forEach((btn) => {
+
+                btn.classList.remove("active");
+
+            });
+
+            button.classList.add("active");
+
+            selectedRole =
+                button.dataset.role || "student";
+
+
+            const idInput =
+                overlay.querySelector(
+                    "#dr-login-id"
+                );
+
+            const passwordInput =
+                overlay.querySelector(
+                    "#dr-login-password"
+                );
+
+
+            if (selectedRole === "student") {
+
+                idInput.placeholder =
+                    "Enter your student ID";
+
+                passwordInput.placeholder =
+                    "Enter your password";
+
+            }
+
+
+            if (selectedRole === "driver") {
+
+                idInput.placeholder =
+                    "Enter driver ID";
+
+                passwordInput.placeholder =
+                    "Enter driver password";
+
+            }
+
+
+            if (selectedRole === "admin") {
+
+                idInput.placeholder =
+                    "Enter admin ID";
+
+                passwordInput.placeholder =
+                    "Enter admin password";
+
+            }
+
+        });
+
+    });
+
+
+    // =================================================
+    // LOGIN
+    // =================================================
+
+    const loginForm =
+        overlay.querySelector(
+            "#dr-login-form"
+        );
+
+    loginForm.addEventListener(
+        "submit",
+        (event) => {
+
+            event.preventDefault();
+
+            const id =
+                overlay.querySelector(
+                    "#dr-login-id"
+                ).value.trim();
+
+            const password =
+                overlay.querySelector(
+                    "#dr-login-password"
+                ).value;
+
+
+            if (!id || !password) {
+
+                showLoginError(
+                    "Please enter your ID and password."
+                );
+
+                return;
+            }
+
+
+            // -----------------------------------------
+            // ADMIN DEMO LOGIN
+            // -----------------------------------------
+
+            if (
+                selectedRole === "admin" &&
+                password !== "admin123"
+            ) {
+
+                showLoginError(
+                    "Incorrect admin password."
+                );
+
+                return;
+            }
+
+
+            // -----------------------------------------
+            // SAVE SESSION
+            // -----------------------------------------
+
+            sessionStorage.setItem(
+                "dafforide_logged_in",
+                "true"
+            );
+
+            sessionStorage.setItem(
+                "dafforide_role",
+                selectedRole
+            );
+
+            sessionStorage.setItem(
+                "dafforide_user_id",
+                id
+            );
+
+
+            // -----------------------------------------
+            // CLOSE LOGIN
+            // -----------------------------------------
+
+            document.body.style.overflow = "";
+
+            overlay.remove();
+
+
+            // Update top UI
+            updateLoggedInUI(
+                selectedRole,
+                id
+            );
+
+
+            console.log(
+                "DaffoRide login:",
+                selectedRole
+            );
+
+        }
+    );
+
+
+    // =================================================
+    // REGISTRATION BUTTON
+    // =================================================
+
+    const registerButton =
+        overlay.querySelector(
+            "#dr-register-link"
+        );
+
+   registerButton.addEventListener("click", function () {
+
+    console.log("Registration button clicked");
+
+    try {
+
+        if (typeof openRegistration === "function") {
+
+            console.log("Opening registration...");
+
+            openRegistration();
+
+        } else {
+
+            console.error(
+                "openRegistration function not found"
+            );
+
+            showLoginError(
+                "Registration portal is not available."
+            );
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Registration error:",
+            error
+        );
+
+        showLoginError(
+            "Unable to open registration. Check browser console."
+        );
+
+    }
+
+});
+
+    // Initialize icons
+    if (
+        typeof lucide !== "undefined"
+    ) {
+
+        lucide.createIcons();
+
+    }
+
+}
+
+
+// =====================================================
+// LOGIN ERROR
+// =====================================================
+
+function showLoginError(message) {
+
+    const error =
+        document.querySelector(
+            "#dr-login-error"
+        );
+
+    if (!error) {
+        return;
+    }
+
+    error.textContent = message;
+
+    error.hidden = false;
+
+}
+
+
+// =====================================================
+// UPDATE TOP BAR AFTER LOGIN
+// =====================================================
+
+function updateLoggedInUI(
+    role,
+    userId
+) {
+
+    const studentButton =
+        document.querySelector(
+            "#studentModeBtn"
+        );
+
+    const driverButton =
+        document.querySelector(
+            "#driverModeBtn"
+        );
+
+
+    if (role === "student") {
+
+        if (studentButton) {
+
+            studentButton.classList.add(
+                "active"
+            );
+
+        }
+
+        if (driverButton) {
+
+            driverButton.classList.remove(
+                "active"
+            );
+
+        }
+
+    }
+
+
+    if (role === "driver") {
+
+        if (driverButton) {
+
+            driverButton.classList.add(
+                "active"
+            );
+
+        }
+
+        if (studentButton) {
+
+            studentButton.classList.remove(
+                "active"
+            );
+
+        }
+
+    }
+
+
+    console.log(
+        "Logged in user:",
+        userId
+    );
+
+}
+
+
+// =====================================================
+// LOGOUT
+// =====================================================
+
+function logoutDaffoRide() {
+
+    sessionStorage.removeItem(
+        "dafforide_logged_in"
+    );
+
+    sessionStorage.removeItem(
+        "dafforide_role"
+    );
+
+    sessionStorage.removeItem(
+        "dafforide_user_id"
+    );
+
+
+    document.body.style.overflow =
+        "hidden";
+
+
+    // Reopen login
+    createLoginGate();
+
+}
+
+
+// =====================================================
+// LOGOUT BUTTON SETUP
+// =====================================================
+
+function setupLogoutButton() {
+
+    const logoutButton =
+        document.getElementById(
+            "logoutBtn"
+        );
+
+    if (!logoutButton) {
+
+        console.warn(
+            "DaffoRide: logout button not found."
+        );
+
+        return;
+    }
+
+
+    logoutButton.addEventListener(
+        "click",
+        logoutDaffoRide
+    );
+
+}
+
+
+// =====================================================
+// GLOBAL API
+// =====================================================
+
+window.createLoginGate =
+    createLoginGate;
+
+window.logoutDaffoRide =
+    logoutDaffoRide;
+    // =====================================================
+// LOGIN UI STYLES
+// =====================================================
+
+const drLoginStyle =
+    document.createElement("style");
+
+drLoginStyle.textContent = `
+
+#dafforide-login-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+}
+
+.dr-login-backdrop {
+
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+
+    background:
+        radial-gradient(
+            circle at 85% 10%,
+            rgba(255,193,7,.20),
+            transparent 32%
+        ),
+        linear-gradient(
+            135deg,
+            #062e63 0%,
+            #0b468c 55%,
+            #062b59 100%
+        );
+}
+
+.dr-login-card {
+
+    width: min(450px, 100%);
+
+    padding: 34px;
+
+    border-radius: 30px;
+
+    background:
+        rgba(255,255,255,.97);
+
+    border:
+        1px solid
+        rgba(255,255,255,.5);
+
+    box-shadow:
+        0 30px 90px
+        rgba(0,0,0,.32);
+
+    backdrop-filter:
+        blur(20px);
+}
+
+.dr-login-brand {
+
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+    margin-bottom: 28px;
+}
+
+.dr-login-logo {
+
+    width: 52px;
+    height: 52px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 17px;
+
+    background: #ffc107;
+
+    color: #0b468c;
+}
+
+.dr-login-logo svg {
+
+    width: 27px;
+    height: 27px;
+}
+
+.dr-login-brand h1 {
+
+    margin: 0;
+
+    color: #0b468c;
+
+    font-size: 25px;
+
+    font-weight: 900;
+}
+
+.dr-login-brand p {
+
+    margin: 2px 0 0;
+
+    color: #64748b;
+
+    font-size: 12px;
+}
+
+.dr-login-heading span {
+
+    color: #0b468c;
+
+    font-size: 11px;
+
+    font-weight: 900;
+
+    letter-spacing: .14em;
+}
+
+.dr-login-heading h2 {
+
+    margin:
+        7px 0 8px;
+
+    color: #0f172a;
+
+    font-size: 30px;
+
+    font-weight: 900;
+}
+
+.dr-login-heading p {
+
+    margin:
+        0 0 22px;
+
+    color: #64748b;
+
+    font-size: 14px;
+
+    line-height: 1.6;
+}
+
+.dr-role-switch {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 6px;
+
+    padding: 5px;
+
+    margin-bottom: 20px;
+
+    border-radius: 15px;
+
+    background: #eef4fa;
+}
+
+.dr-role {
+
+    border: 0;
+
+    border-radius: 11px;
+
+    padding: 11px 6px;
+
+    background: transparent;
+
+    color: #64748b;
+
+    font-size: 13px;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition: .2s;
+}
+
+.dr-role:hover {
+
+    color: #0b468c;
+}
+
+.dr-role.active {
+
+    background: #0b468c;
+
+    color: white;
+
+    box-shadow:
+        0 6px 16px
+        rgba(11,70,140,.25);
+}
+
+#dr-login-form {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+#dr-login-form label {
+
+    margin-top: 5px;
+
+    color: #334155;
+
+    font-size: 13px;
+
+    font-weight: 800;
+}
+
+#dr-login-form input {
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 14px 15px;
+
+    border:
+        1px solid
+        #dbe3ed;
+
+    border-radius: 13px;
+
+    outline: none;
+
+    background: #f8fafc;
+
+    color: #0f172a;
+
+    font-size: 14px;
+
+    transition: .2s;
+}
+
+#dr-login-form input:focus {
+
+    border-color: #0b468c;
+
+    background: white;
+
+    box-shadow:
+        0 0 0 4px
+        rgba(11,70,140,.08);
+}
+
+.dr-login-button {
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    margin-top: 12px;
+
+    padding: 14px;
+
+    border: 0;
+
+    border-radius: 14px;
+
+    background: #0b468c;
+
+    color: white;
+
+    font-size: 14px;
+
+    font-weight: 900;
+
+    cursor: pointer;
+
+    transition: .2s;
+}
+
+.dr-login-button:hover {
+
+    transform:
+        translateY(-2px);
+
+    background: #083b76;
+
+    box-shadow:
+        0 10px 25px
+        rgba(11,70,140,.25);
+}
+
+.dr-register-link {
+
+    width: 100%;
+
+    margin-top: 18px;
+
+    padding: 10px;
+
+    border: 0;
+
+    background: transparent;
+
+    color: #0b468c;
+
+    font-size: 13px;
+
+    cursor: pointer;
+}
+
+.dr-register-link:hover {
+
+    text-decoration:
+        underline;
+}
+
+.dr-register-link strong {
+
+    font-weight: 900;
+}
+
+.dr-demo-hint {
+
+    margin:
+        15px 0 0;
+
+    text-align: center;
+
+    color: #94a3b8;
+
+    font-size: 11px;
+}
+
+.dr-demo-hint strong {
+
+    color: #64748b;
+}
+
+.dr-login-error {
+
+    padding: 10px 12px;
+
+    margin-top: 4px;
+
+    border-radius: 10px;
+
+    background: #fee2e2;
+
+    color: #b91c1c;
+
+    font-size: 12px;
+
+    font-weight: 700;
+}
+
+@media (max-width: 520px) {
+
+    .dr-login-card {
+
+        padding: 25px;
+
+        border-radius: 24px;
+    }
+
+    .dr-login-heading h2 {
+
+        font-size: 25px;
+    }
+
+}
+
+`;
+
+document.head.appendChild(
+    drLoginStyle
+);
+// =====================================================
+// REGISTRATION PORTAL DESIGN
+// =====================================================
+
+const drRegistrationStyle =
+    document.createElement("style");
+
+drRegistrationStyle.textContent = `
+
+/* Main registration area */
+.dr-registration-wrap {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+
+/* Intro */
+.dr-registration-intro {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 18px;
+    margin-bottom: 20px;
+
+    border-radius: 20px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #f8fbff,
+            #eef6ff
+        );
+
+    border: 1px solid #dbeafe;
+}
+
+.dr-registration-icon {
+    width: 52px;
+    height: 52px;
+
+    flex-shrink: 0;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 16px;
+
+    background: #0b468c;
+    color: white;
+
+    box-shadow:
+        0 8px 20px
+        rgba(11,70,140,.20);
+}
+
+.dr-registration-icon svg {
+    width: 25px;
+    height: 25px;
+}
+
+.dr-registration-eyebrow {
+    margin-bottom: 3px;
+
+    color: #0b468c;
+
+    font-size: 10px;
+    font-weight: 900;
+
+    letter-spacing: .14em;
+}
+
+.dr-registration-intro h3 {
+    margin: 0;
+
+    color: #0f172a;
+
+    font-size: 21px;
+    font-weight: 900;
+}
+
+.dr-registration-intro p {
+    margin: 4px 0 0;
+
+    color: #64748b;
+
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+
+/* Role cards */
+.dr-registration-roles {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 12px;
+
+    margin-bottom: 22px;
+}
+
+.dr-registration-role {
+
+    display: flex;
+    align-items: center;
+
+    gap: 11px;
+
+    min-height: 78px;
+
+    padding: 13px;
+
+    border:
+        1px solid
+        #e2e8f0;
+
+    border-radius: 18px;
+
+    background: white;
+
+    color: #334155;
+
+    cursor: pointer;
+
+    text-align: left;
+
+    transition:
+        transform .2s ease,
+        border-color .2s ease,
+        box-shadow .2s ease,
+        background .2s ease;
+}
+
+.dr-registration-role:hover {
+
+    transform:
+        translateY(-2px);
+
+    border-color:
+        #93c5fd;
+
+    box-shadow:
+        0 10px 25px
+        rgba(15,23,42,.08);
+}
+
+.dr-registration-role.active {
+
+    border-color:
+        #0b468c;
+
+    background:
+        linear-gradient(
+            135deg,
+            #eff6ff,
+            #ffffff
+        );
+
+    box-shadow:
+        0 10px 28px
+        rgba(11,70,140,.14);
+}
+
+.dr-registration-role-icon {
+
+    width: 42px;
+    height: 42px;
+
+    flex-shrink: 0;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 13px;
+
+    background: #f1f5f9;
+
+    font-size: 20px;
+}
+
+.dr-registration-role.active
+.dr-registration-role-icon {
+
+    background: #ffc107;
+}
+
+.dr-registration-role span:last-child {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.dr-registration-role strong {
+
+    color: #0f172a;
+
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.dr-registration-role small {
+
+    color: #64748b;
+
+    font-size: 10px;
+    font-weight: 600;
+}
+
+
+/* Form container */
+.dr-registration-form {
+
+    padding: 20px;
+
+    border-radius: 20px;
+
+    background: #f8fafc;
+
+    border:
+        1px solid
+        #e2e8f0;
+}
+
+
+/* Existing form styles */
+.dr-registration-form form {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 14px;
+}
+
+
+/* Labels */
+.dr-registration-form label {
+
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: #334155;
+
+    font-size: 12px;
+
+    font-weight: 800;
+}
+
+
+/* Inputs */
+.dr-registration-form input,
+.dr-registration-form select,
+.dr-registration-form textarea {
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 12px 13px;
+
+    border:
+        1px solid
+        #dbe3ed;
+
+    border-radius: 12px;
+
+    outline: none;
+
+    background: white;
+
+    color: #0f172a;
+
+    font-size: 13px;
+
+    transition: .2s;
+}
+
+.dr-registration-form input:focus,
+.dr-registration-form select:focus,
+.dr-registration-form textarea:focus {
+
+    border-color:
+        #0b468c;
+
+    box-shadow:
+        0 0 0 4px
+        rgba(11,70,140,.08);
+}
+
+
+/* Buttons inside existing forms */
+.dr-registration-form button {
+
+    border: 0;
+
+    border-radius: 12px;
+
+    padding: 12px 18px;
+
+    background: #0b468c;
+
+    color: white;
+
+    font-size: 12px;
+
+    font-weight: 900;
+
+    cursor: pointer;
+
+    transition: .2s;
+}
+
+.dr-registration-form button:hover {
+
+    transform:
+        translateY(-1px);
+
+    background: #083b76;
+
+    box-shadow:
+        0 8px 18px
+        rgba(11,70,140,.20);
+}
+
+
+/* Existing DaffoRide form compatibility */
+.dr-registration-form .df-button,
+.dr-registration-form .df-button-primary {
+
+    background: #0b468c !important;
+
+    color: white !important;
+
+    border-radius: 12px;
+}
+
+.dr-registration-form .df-button-secondary {
+
+    background: #e2e8f0 !important;
+
+    color: #334155 !important;
+}
+
+
+/* Alert */
+.dr-registration-form .df-alert {
+
+    padding: 14px;
+
+    margin-bottom: 15px;
+
+    border-radius: 12px;
+
+    background: #dcfce7;
+
+    color: #166534;
+
+    font-size: 13px;
+
+    font-weight: 800;
+}
+
+
+/* Button row */
+.dr-registration-form .df-button-row {
+
+    display: flex;
+
+    gap: 10px;
+
+    flex-wrap: wrap;
+
+    margin-top: 15px;
+}
+
+
+/* Mobile */
+@media (max-width: 650px) {
+
+    .dr-registration-roles {
+
+        grid-template-columns:
+            1fr;
+    }
+
+    .dr-registration-role {
+
+        min-height: 65px;
+    }
+
+    .dr-registration-form form {
+
+        grid-template-columns:
+            1fr;
+    }
+
+    .dr-registration-intro {
+
+        align-items: flex-start;
+    }
+
+}
+
+`;
+
+document.head.appendChild(
+    drRegistrationStyle
+);
 })();

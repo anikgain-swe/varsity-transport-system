@@ -613,29 +613,28 @@ function updateBusMarker(
 
     // Corridor filter
 
+if (
+    activeMapFilter !== "ALL" &&
+    String(bus.corridor).toLowerCase() !==
+    String(activeMapFilter).toLowerCase()
+) {
+
     if (
-        activeMapFilter !==
-            "ALL" &&
-        bus.corridor !==
-            activeMapFilter
+        mapMarkers[bus.id]
     ) {
 
-        if (
+        liveMap.removeLayer(
             mapMarkers[bus.id]
-        ) {
+        );
 
-            liveMap.removeLayer(
-                mapMarkers[bus.id]
-            );
+        delete mapMarkers[
+            bus.id
+        ];
 
-            delete mapMarkers[
-                bus.id
-            ];
-
-        }
-
-        return;
     }
+
+    return;
+}
 
 
     const position = [
@@ -702,29 +701,71 @@ function updateBusMarker(
 // UPDATE ALL BUSES
 // ======================================================
 
-function updateMapFleet(
-    fleet
-) {
+function updateMapFleet(fleet) {
 
-    if (
-        !Array.isArray(fleet)
-    ) {
+    if (!Array.isArray(fleet)) {
         return;
     }
 
 
-    fleet.forEach(
-        bus => {
+    // -----------------------------------------
+    // Remove markers that are no longer visible
+    // -----------------------------------------
 
-            updateBusMarker(
-                bus
-            );
+    Object.keys(mapMarkers).forEach(
+        function (busId) {
+
+            const marker =
+                mapMarkers[busId];
+
+            const bus =
+                fleet.find(
+                    function (item) {
+                        return String(item.id) ===
+                            String(busId);
+                    }
+                );
+
+
+            if (!bus) {
+
+                liveMap.removeLayer(marker);
+
+                delete mapMarkers[busId];
+
+                return;
+            }
+
+
+            if (
+                activeMapFilter !== "ALL" &&
+                String(bus.corridor).toLowerCase() !==
+                String(activeMapFilter).toLowerCase()
+            ) {
+
+                liveMap.removeLayer(marker);
+
+                delete mapMarkers[busId];
+
+            }
+
+        }
+    );
+
+
+    // -----------------------------------------
+    // Update visible buses
+    // -----------------------------------------
+
+    fleet.forEach(
+        function (bus) {
+
+            updateBusMarker(bus);
 
         }
     );
 
 }
-
 
 // ======================================================
 // SOCKET.IO CONNECTION
@@ -814,24 +855,34 @@ async function loadInitialMapFleet() {
 // MAP FILTER
 // ======================================================
 
-function setMapFilter(
-    corridor
-) {
+function setMapFilter(corridor) {
 
-    activeMapFilter =
-        corridor;
+    activeMapFilter = corridor;
 
 
-    // Remove current markers
+    console.log(
+        "Active map corridor:",
+        activeMapFilter
+    );
+
+
+    // -----------------------------------------
+    // Remove current bus markers
+    // -----------------------------------------
 
     Object.values(
         mapMarkers
     ).forEach(
-        marker => {
+        function (marker) {
 
-            liveMap.removeLayer(
-                marker
-            );
+            if (
+                liveMap &&
+                liveMap.hasLayer(marker)
+            ) {
+
+                liveMap.removeLayer(marker);
+
+            }
 
         }
     );
@@ -840,26 +891,95 @@ function setMapFilter(
     mapMarkers = {};
 
 
-    // Reload
+    // -----------------------------------------
+    // Update button appearance
+    // -----------------------------------------
+
+    const filterButtons =
+        document.querySelectorAll(
+            '[onclick^="setMapFilter"]'
+        );
+
+
+    filterButtons.forEach(
+        function (button) {
+
+            const onclick =
+                button.getAttribute(
+                    "onclick"
+                );
+
+
+            if (!onclick) {
+                return;
+            }
+
+
+            const match =
+                onclick.match(
+                    /setMapFilter\('([^']+)'\)/
+                );
+
+
+            if (!match) {
+                return;
+            }
+
+
+            const buttonFilter =
+                match[1];
+
+
+            if (
+                buttonFilter ===
+                corridor
+            ) {
+
+                button.classList.remove(
+                    "bg-slate-100",
+                    "text-slate-600"
+                );
+
+                button.classList.add(
+                    "bg-[#0B468C]",
+                    "text-white",
+                    "shadow-sm"
+                );
+
+            } else {
+
+                button.classList.remove(
+                    "bg-[#0B468C]",
+                    "text-white",
+                    "shadow-sm"
+                );
+
+                button.classList.add(
+                    "bg-slate-100",
+                    "text-slate-600"
+                );
+
+            }
+
+        }
+    );
+
+
+    // -----------------------------------------
+    // Load fleet again
+    // -----------------------------------------
 
     loadInitialMapFleet();
 
 }
 
-
 // ======================================================
 // FOCUS ON BUS
 // ======================================================
 
-function focusMapBus(
-    busId
-) {
+function focusMapBus(busId) {
 
-    const marker =
-        mapMarkers[
-            busId
-        ];
-
+    const marker = mapMarkers[busId];
 
     if (!marker) {
 
@@ -870,24 +990,45 @@ function focusMapBus(
         return;
     }
 
+    // ================================
+    // 1. Scroll directly to map
+    // ================================
+
+    const mapElement =
+        document.getElementById("liveMap");
+
+    if (mapElement) {
+
+        mapElement.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+
+    }
+
+
+    // ================================
+    // 2. Focus bus on map
+    // ================================
 
     const position =
         marker.getLatLng();
 
+    setTimeout(() => {
 
-    liveMap.setView(
-        position,
-        15,
-        {
-            animate: true
-        }
-    );
+        liveMap.setView(
+            position,
+            16,
+            {
+                animate: true
+            }
+        );
 
+        marker.openPopup();
 
-    marker.openPopup();
+    }, 500);
 
 }
-
 
 // ======================================================
 // START INITIAL DATA

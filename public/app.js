@@ -971,14 +971,9 @@ function focusBus(busId) {
     }
 
 
-    alert(
-        `${bus.busNumber}\n\n` +
-        `Route: ${bus.routeName}\n` +
-        `Speed: ${bus.speed} km/h\n` +
-        `Available Seats: ${bus.availableSeats}\n` +
-        `ETA: ${bus.eta} minutes\n` +
-        `Next Stop: ${bus.nextStop}`
-    );
+   if (typeof window.focusMapBus === "function") {
+    window.focusMapBus(bus.id);
+}
 
 }
 
