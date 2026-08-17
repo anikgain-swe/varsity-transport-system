@@ -1,13 +1,22 @@
 {
-  "name": "transport-mannagment-system",
+  "name": "dafforide",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Smart Campus Bus Tracking and Transport Management System",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "transport",
+    "bus",
+    "tracking",
+    "campus",
+    "nodejs",
+    "express",
+    "electron"
+  ],
+  "author": "Anik Gain",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
